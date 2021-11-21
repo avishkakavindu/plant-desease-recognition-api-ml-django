@@ -172,12 +172,14 @@ class plant_leaf_disease_recognition:
         new_img = np.asarray(new_img)
         new_img = new_img / 255
 
-        loaded_model = tf.keras.models.load_model('model.h5')
-        result = loaded_model.predict_classes(new_img)
-        return (traininglabels[result[0]])
+        loaded_model = tf.keras.models.load_model('api/model/model.h5')
+        result = loaded_model.predict(new_img)
+        # sort indexes of predictions high to low
+        sorted_result = (-result[0]).argsort()
+        return traininglabels[sorted_result[0]]
 
 
-test = plant_leaf_disease_recognition()
+# test = plant_leaf_disease_recognition()
 # test.train_model()
 
-print(test.predict("/Users/roshanwithanage/Desktop/SLIIT JUNIOR PROJECTS/2021/Kanishka/Plant/a.jfif"))
+# print(test.predict("/Users/roshanwithanage/Desktop/SLIIT JUNIOR PROJECTS/2021/Kanishka/Plant/a.jfif"))
