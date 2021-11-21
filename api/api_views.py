@@ -16,7 +16,7 @@ class PredictAPIView(APIView):
     def get_object(self, **kwargs):
         try:
             disease = kwargs['disease']
-            print('\n\n\n\ Passed Disease:', disease)
+            # print('\n\n\n\ Passed Disease:', disease)
         except KeyError:
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -27,20 +27,20 @@ class PredictAPIView(APIView):
                 'error': 'Records not found for the disease.'
             }
             return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        print('\n\n\n\n Queried disease:', disease)
+        # print('\n\n\n\n Queried disease:', disease)
         return disease
 
     def get_disease_details(self, **kwargs):
         try:
             disease = kwargs['disease']
-            print('\n\n\n\n Passed to method:', disease)
+            # print('\n\n\n\n Passed to method:', disease)
         except KeyError:
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         disease = self.get_object(disease=disease)
         serializer = DiseaseSerializer(disease)
 
-        print('\n\n\n\n Serialized', type(serializer.data))
+        # print('\n\n\n\n Serialized', type(serializer.data))
 
         return serializer.data
 
@@ -51,7 +51,7 @@ class PredictAPIView(APIView):
         file_name = default_storage.save('image.jfif', file)
         file_path = default_storage.path(file_name)
 
-        print(type(file_path), file_path)
+        # print(type(file_path), file_path)
 
         model = plant_leaf_disease_recognition()
         prediction = model.predict(file_path).replace(' ', '_').lower()
