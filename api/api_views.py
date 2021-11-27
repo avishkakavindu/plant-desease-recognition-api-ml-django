@@ -18,7 +18,7 @@ class PredictAPIView(APIView):
             disease = kwargs['disease']
             # print('\n\n\n\ Passed Disease:', disease)
         except KeyError:
-            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
         try:
             disease = Disease.objects.get(name=disease)
@@ -26,7 +26,7 @@ class PredictAPIView(APIView):
             context = {
                 'error': 'Records not found for the disease.'
             }
-            return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(context, status=status.HTTP_404_NOT_FOUND)
         # print('\n\n\n\n Queried disease:', disease)
         return disease
 
@@ -35,9 +35,10 @@ class PredictAPIView(APIView):
             disease = kwargs['disease']
             # print('\n\n\n\n Passed to method:', disease)
         except KeyError:
-            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
         disease = self.get_object(disease=disease)
+
         serializer = DiseaseSerializer(disease)
 
         # print('\n\n\n\n Serialized', type(serializer.data))
@@ -45,7 +46,7 @@ class PredictAPIView(APIView):
         return serializer.data
 
     def post(self, request, *args, **kwargs):
-        file = request.FILES['image']
+        file = request.data.get('image')
 
         # save file into storage
         file_name = default_storage.save('image.jfif', file)
@@ -56,12 +57,25 @@ class PredictAPIView(APIView):
         model = plant_leaf_disease_recognition()
         prediction = model.predict(file_path).replace(' ', '_').lower()
 
+        sts = status.HTTP_200_OK
+
+        if prediction != 'helthy_leaf':
+            try:
+                detail = self.get_disease_details(disease=prediction)
+                sts = status.HTTP_200_OK
+            except AttributeError:
+                detail = "Disease records not found!"
+                sts = status.HTTP_404_NOT_FOUND
+        else:
+            detail = 'N/A'
+            sts = status.HTTP_200_OK
+
         context = {
             'prediction': prediction,
-            'detail': self.get_disease_details(disease=prediction) if prediction != 'helthy_leaf' else 'N/A'
+            'detail': detail
         }
 
         # remove file from storage
         default_storage.delete(file_path)
 
-        return Response(context, status=status.HTTP_200_OK)
+        return Response(context, status=sts)
